@@ -24,7 +24,7 @@ References:
 var fs = require('fs');
 var program = require('commander');
 var cheerio = require('cheerio');
-var restler = require('restler');
+var rest = require('restler');
 
 var HTMLFILE_DEFAULT = "index.html";
 var CHECKSFILE_DEFAULT = "checks.json";
@@ -70,30 +70,30 @@ if(require.main == module) {
         .option('-u, --url <url>', 'a web page url')
 	.parse(process.argv);
     
-    var htmlFile
-
     if (program.url) {
-   
-	htmlFile = "page.html";
-	
-	restler.get(program.url).on('complete', function(result, response) {
-	
+
+	var htmlFile = "page.html";
+
+	rest.get(program.url).on('complete', function(result, response) {
+	    
 	    if (result instanceof Error) {
 		console.error('Error: ' + util.format(response.message));
             } else {
-		console.error("Wrote %s", result);
+		console.error("Wrote %s", htmlFile);
 		fs.writeFileSync(htmlFile, result);
+		var checkJson = checkHtmlFile(htmlFile, program.checks);
+		var outJson = JSON.stringify(checkJson, null, 4);
+		console.log(outJson);
             }
 	});
     } else if (program.file) {
-	
-	htmlFile = program.file;
-    }
 
-    var checkJson = checkHtmlFile(htmlFile, program.checks);
-    var outJson = JSON.stringify(checkJson, null, 4);
-    
-    console.log(outJson);
+	var checkJson = checkHtmlFile(program.file, program.checks);
+	var outJson = JSON.stringify(checkJson, null, 4);
+
+	console.log(outJson);
+    }
 } else {
     exports.checkHtmlFile = checkHtmlFile;
 }
+
